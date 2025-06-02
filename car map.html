@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Philippines Car GPS Tracker – Fullscreen Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+    }
+
+    header {
+      width: 100%;
+      height: 70px;
+      padding: 1rem;
+      background: #0057b7;
+      color: white;
+      text-align: center;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+
+    #status {
+      padding: 0.5rem 1rem;
+      background: #ffffffcc;
+      position: absolute;
+      top: 70px;
+      left: 10px;
+      z-index: 1000;
+      font-size: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #map {
+      width: 100%;
+      height: calc(100vh - 70px);
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<header>🚗 Multi-Car GPS Tracker – Philippines (Land Only)</header>
+<div id="status">Initializing cars near major cities...</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([12.8797, 121.7740], 6); // Center of Philippines
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+ const cities = [
+  { name: 'Laoag', lat: 18.1978, lon: 120.5952 },
+  { name: 'Vigan', lat: 17.5747, lon: 120.3869 },
+  { name: 'San Fernando (LU)', lat: 16.6151, lon: 120.3194 },
+  { name: 'Tuguegarao', lat: 17.6131, lon: 121.7269 },
+  { name: 'Baguio', lat: 16.4023, lon: 120.5960 },
+  { name: 'Manila', lat: 14.5995, lon: 120.9842 },
+  { name: 'Quezon City', lat: 14.6760, lon: 121.0437 },
+  { name: 'Cebu City', lat: 10.3157, lon: 123.8854 },
+  { name: 'Davao City', lat: 7.1907, lon: 125.4553 },
+  { name: 'General Santos', lat: 6.1164, lon: 125.1716 }
+];
+  const cars = [];
+
+  function getNearbyCityLocation(city) {
+    const latOffset = (Math.random() - 0.5) * 0.02; // ~1km variation
+    const lonOffset = (Math.random() - 0.5) * 0.02;
+    return {
+      lat: city.lat + latOffset,
+      lon: city.lon + lonOffset
+    };
+  }
+
+  function initCars() {
+    for (let i = 0; i < cities.length; i++) {
+      const city = cities[i];
+      const pos = getNearbyCityLocation(city);
+
+      const marker = L.marker([pos.lat, pos.lon])
+        .addTo(map)
+        .bindPopup(`🚗 Car #${i + 1}<br><b>${city.name}</b>`);
+
+      cars.push({
+        id: i + 1,
+        city,
+        lat: pos.lat,
+        lon: pos.lon,
+        marker
+      });
+    }
+  }
+
+  function updateCarPositions() {
+    cars.forEach(car => {
+      // Simulate movement near city
+      car.lat += (Math.random() - 0.5) * 0.002;
+      car.lon += (Math.random() - 0.5) * 0.002;
+
+      // Keep car relatively close to its base city
+      car.lat = Math.max(car.city.lat - 0.01, Math.min(car.city.lat + 0.01, car.lat));
+      car.lon = Math.max(car.city.lon - 0.01, Math.min(car.city.lon + 0.01, car.lon));
+
+      car.marker.setLatLng([car.lat, car.lon]);
+    });
+
+    document.getElementById('status').textContent =
+      `Tracking ${cars.length} demo cars on land in PH cities.`;
+  }
+
+  initCars();
+  setInterval(updateCarPositions, 3000); // update every 3s
+</script>
+
+</body>
+</html>
